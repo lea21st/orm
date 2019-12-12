@@ -517,30 +517,30 @@ abstract class AbstractModel implements ArrayAccess, JsonSerializable
         }
 
         // 开启事务
-        DbManager::getInstance()->startTransaction();
+        DbManager::getInstance()->startTransaction($this->connectionName);
         $result = [];
 
-        try{
-            foreach ($data as $key => $row){
+        try {
+            foreach ($data as $key => $row) {
                 // 如果有设置更新
-                if ($replace && isset($row[$pk])){
+                if ($replace && isset($row[$pk])) {
                     $model = static::create()->get($row[$pk]);
                     unset($row[$pk]);
                     $model->update($row);
                     $result[$key] = $model;
-                }else{
-                    $model = static::create($row);
-                    $res = $model->save();
+                } else {
+                    $model        = static::create($row);
+                    $res          = $model->save();
                     $result[$key] = $model;
                 }
             }
-            DbManager::getInstance()->commit();
+            DbManager::getInstance()->commit($this->connectionName);
             return $result;
         } catch (\EasySwoole\Mysqli\Exception\Exception $e) {
-            DbManager::getInstance()->rollback();
+            DbManager::getInstance()->rollback($this->connectionName);
             throw $e;
         } catch (\Throwable $e) {
-            DbManager::getInstance()->rollback();
+            DbManager::getInstance()->rollback($this->connectionName);
             throw $e;
         }
 
